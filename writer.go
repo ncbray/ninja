@@ -23,6 +23,11 @@ func escapePaths(paths []string) []string {
 	return out
 }
 
+type Variable struct {
+	Key   string
+	Value string
+}
+
 type RuleOptions struct {
 	Description string
 	// "gcc" or "msvc"
@@ -40,6 +45,7 @@ type BuildOptions struct {
 	ImplicitInputs  []string
 	OrderOnlyInputs []string
 	ImplicitOutputs []string
+	Variables       []Variable
 }
 
 type NinjaWriter struct {
@@ -54,6 +60,12 @@ func (w *NinjaWriter) line(text string, indent_count int) {
 	io.WriteString(w.out, "\n")
 }
 
+// Top-level variable
+func (w *NinjaWriter) Variable(name string, value string) {
+	w.line(fmt.Sprintf("%s = %s", name, value), 0)
+}
+
+// Rule or build-level variable
 func (w *NinjaWriter) variable(name string, value string) {
 	if value != "" {
 		w.line(fmt.Sprintf("%s = %s", name, value), 1)
@@ -100,7 +112,9 @@ func (w *NinjaWriter) Build(outputs []string, rule string, options BuildOptions)
 		strings.Join(append([]string{rule}, inputs...), " "),
 	), 0)
 
-	// TODO variable overrides.
+	for _, v := range options.Variables {
+		w.variable(v.Key, v.Value)
+	}
 }
 
 func MakeNinjaWriter(out io.Writer) *NinjaWriter {
