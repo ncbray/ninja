@@ -117,6 +117,18 @@ func (w *NinjaWriter) Build(outputs []string, rule string, options BuildOptions)
 	}
 }
 
+func (w *NinjaWriter) Include(path string) {
+	w.line("include "+escapePath(path), 0)
+}
+
+func (w *NinjaWriter) Subninja(path string) {
+	w.line("subninja "+escapePath(path), 0)
+}
+
+func (w *NinjaWriter) Default(paths []string) {
+	w.line("default "+strings.Join(escapePaths(paths), " "), 0)
+}
+
 func MakeNinjaWriter(out io.Writer) *NinjaWriter {
 	return &NinjaWriter{
 		out: out,
